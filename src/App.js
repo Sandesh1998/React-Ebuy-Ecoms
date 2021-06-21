@@ -6,7 +6,7 @@ import ShopPage from "./pages/shop/shop.components";
 import Header from "./Components/header/header.componets";
 import SigInAndSignUpPage from "./pages/sign-in-and-sign-up/sign-in-and-sign-up.components";
 
-import { auth } from "./firbase/firebase.utils";
+import { auth,createUserProfileDocument } from "./firbase/firebase.utils";
 import './App.css';
 
 
@@ -23,11 +23,23 @@ class App extends React.Component{
   unsubscribeFromAuth = null;
 
   componentDidMount(){
-    auth.onAuthStateChanged(user =>{
-      this.setState({currentuser:user})
+    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth =>{
+      if (userAuth){ // to store data in application
+        const userRef = await createUserProfileDocument(userAuth);
 
-      console.log(user);
-    })
+        userRef.onSnapshot(snapShot =>{
+          this.setState({
+            currentuser :{
+              id : snapShot.id,
+              ...snapShot.data()
+            }
+          });
+
+          console.log(this.state);
+        });
+      }
+      this.setState({ currentuser : userAuth });
+    });
   }
 
   componentWillUnmount(){
